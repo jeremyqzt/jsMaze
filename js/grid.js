@@ -1,6 +1,6 @@
 class Maze {
 	constructor() {
-		this.grid = new Grid("grid", 15);
+		this.grid = new Grid("grid", 10);
 		this.generationAlgo = new subDivider(this.grid);
 	}
 }
@@ -47,7 +47,7 @@ class subDivider{
 
 	async recursiveDivide(firstHorizontal, firstVertical, horizontalCount, verticalCount, prevEntries, breakNow) {
 
-		if (horizontalCount < 3 || verticalCount < 3) {
+		if (horizontalCount < 4 || verticalCount < 4) {
 			return;
 		}
 
@@ -56,25 +56,26 @@ class subDivider{
 		var verticalHalfPoint = this.floorWithExclusion(firstVertical, (firstVertical + verticalCount), prevEntries);
 
 		//Quadrasect the grid
-		var horizontalHalfCount = Math.floor(horizontalCount/2);
-		var verticalHalfCount = Math.floor(verticalCount/2);
+		var horizontalHalfCount = Math.ceil(horizontalCount/2);
+		var verticalHalfCount = Math.ceil(verticalCount/2);
+
 
 		//console.log("Horizontally From: " + firstHorizontal + " TO : " + (firstHorizontal + horizontalCount) + " Half @:" + horizontalHalf);
 		//console.log("Vertically From: " + firstVertical + " TO : " + (firstVertical + verticalCount) + " Half @:" + verticalHalf);
-		//var horizontalDiv0 = this.randInt(firstHorizontal + 1, firstHorizontal + (horizontalCount/2) - 1);
-		//var horizontalDiv1 = this.randInt(firstHorizontal + (horizontalCount/2) + 1, (firstHorizontal + horizontalCount) - 1);
-		//var verticalDiv0 = this.randInt(firstVertical + 1, firstVertical + (verticalCount/2) - 1);
-		//var verticalDiv1 = this.randInt(firstVertical + (verticalCount/2) + 1, (firstVertical + verticalCount) - 1);
+		var horizontalDiv0 = this.randInt(firstHorizontal + 1, firstHorizontal + (horizontalCount/2) - 1);
+		var horizontalDiv1 = this.randInt(firstHorizontal + (horizontalCount/2) + 1, (firstHorizontal + horizontalCount) - 1);
+		var verticalDiv0 = this.randInt(firstVertical + 1, firstVertical + (verticalCount/2) - 1);
+		var verticalDiv1 = this.randInt(firstVertical + (verticalCount/2) + 1, (firstVertical + verticalCount) - 1);
 
-		//var prevEntriesForNextRound = [horizontalDiv0, horizontalDiv1, verticalDiv0, verticalDiv1];
-		var prevEntriesForNextRound = [0, 0, 0, 0];
+		var prevEntriesForNextRound = [horizontalDiv0, horizontalDiv1, verticalDiv0, verticalDiv1];
+		//var prevEntriesForNextRound = [0, 0, 0, 0];
 
 		//console.log(prevEntriesForNextRound);
 		//Draw Horizontal Line
 		for (var i = firstHorizontal; i < (firstHorizontal + horizontalCount) && i < this.grid.individualHorizontalCount; i++) {
-			//if (horizontalDiv0 === i || horizontalDiv1 === i) {
-			//	continue;
-			//}
+			if (horizontalDiv0 === i || horizontalDiv1 === i) {
+				continue;
+			}
 			//console.log("First " + verticalHalf + "," + i);
 			this.grid.setObs(verticalHalfPoint, i);
 			await new Promise(r => setTimeout(r, 15));
@@ -82,19 +83,17 @@ class subDivider{
 
 		//Draw Vertical Line
 		for (var i = firstVertical; i < (firstVertical + verticalCount) && i < this.grid.individualVerticalCount; i++) {
-			//if (verticalDiv0 === i || verticalDiv1 === i) {
-			//	continue;
-			//}
+			if (verticalDiv0 === i || verticalDiv1 === i) {
+				continue;
+			}
 			//console.log("Second " + i + "," + horizontalHalf);
 			this.grid.setObs(i, horizontalHalfPoint);
 			await new Promise(r => setTimeout(r, 15));
 		}
 
 		if (!breakNow) {
-			//console.log(horizontalHalf);
-			//console.log(verticalHalf);
 			this.recursiveDivide(firstHorizontal, firstVertical, horizontalHalfCount , verticalHalfCount, prevEntriesForNextRound, false);
-			this.recursiveDivide(horizontalHalfPoint, firstVertical, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
+			this.recursiveDivide(horizontalHalfPoint, firstVertical, horizontalHalfCount , verticalHalfCount, prevEntriesForNextRound, false);
 			this.recursiveDivide(firstHorizontal, verticalHalfPoint, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
 			this.recursiveDivide(horizontalHalfPoint, verticalHalfPoint, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
 		}
