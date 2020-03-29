@@ -1,6 +1,6 @@
 class Maze {
 	constructor() {
-		this.grid = new Grid("grid", 20);
+		this.grid = new Grid("grid", 15);
 		this.generationAlgo = new subDivider(this.grid);
 	}
 }
@@ -55,6 +55,10 @@ class subDivider{
 		var horizontalHalfPoint = this.floorWithExclusion(firstHorizontal, (firstHorizontal + horizontalCount), prevEntries);
 		var verticalHalfPoint = this.floorWithExclusion(firstVertical, (firstVertical + verticalCount), prevEntries);
 
+		//Quadrasect the grid
+		var horizontalHalfCount = Math.floor(horizontalCount/2);
+		var verticalHalfCount = Math.floor(verticalCount/2);
+
 		//console.log("Horizontally From: " + firstHorizontal + " TO : " + (firstHorizontal + horizontalCount) + " Half @:" + horizontalHalf);
 		//console.log("Vertically From: " + firstVertical + " TO : " + (firstVertical + verticalCount) + " Half @:" + verticalHalf);
 		//var horizontalDiv0 = this.randInt(firstHorizontal + 1, firstHorizontal + (horizontalCount/2) - 1);
@@ -89,10 +93,10 @@ class subDivider{
 		if (!breakNow) {
 			//console.log(horizontalHalf);
 			//console.log(verticalHalf);
-			//this.recursiveDivide(firstHorizontal, firstVertical, horizontalHalf , verticalHalf, prevEntriesForNextRound, false);
-			this.recursiveDivide(horizontalHalfPoint, firstVertical, horizontalHalfPoint, verticalHalfPoint, prevEntriesForNextRound, false);
-			//this.recursiveDivide(firstHorizontal, verticalHalf, horizontalHalf , verticalHalf, prevEntriesForNextRound, false);
-			//this.recursiveDivide(horizontalHalf, verticalHalf, horizontalHalf+1 ,verticalHalf+1, prevEntriesForNextRound, false);
+			this.recursiveDivide(firstHorizontal, firstVertical, horizontalHalfCount , verticalHalfCount, prevEntriesForNextRound, false);
+			this.recursiveDivide(horizontalHalfPoint, firstVertical, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
+			this.recursiveDivide(firstHorizontal, verticalHalfPoint, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
+			this.recursiveDivide(horizontalHalfPoint, verticalHalfPoint, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
 		}
 
 
