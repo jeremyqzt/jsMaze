@@ -1,6 +1,6 @@
 class Maze {
 	constructor() {
-		this.grid = new Grid("grid", 10);
+		this.grid = new Grid("grid", 20);
 		this.generationAlgo = new subDivider(this.grid);
 	}
 }
@@ -47,7 +47,7 @@ class subDivider{
 
 	async recursiveDivide(firstHorizontal, firstVertical, horizontalCount, verticalCount, prevEntries, breakNow) {
 
-		if (horizontalCount < 4 || verticalCount < 4) {
+		if (horizontalCount < 5 || verticalCount < 5) {
 			return;
 		}
 
@@ -154,6 +154,9 @@ class Grid{
 			for (var j = 0; j < xCount; j++) {
 				this.grid[i][j] = new GridNode(this.locat, this, individualWidth, individualHeight);
 				this.grid[i][j].setAttrib("Cord", [i,j]);
+				if (i ==0 && j == 0) {
+					this.grid[i][j].setAsEnd();
+				}
 			}
 		}
 	}
@@ -208,6 +211,13 @@ class GridNode{
 		this.node.setAttribute("class","gridNode");
 		this.node.addEventListener("mouseenter", evt => this.dragged(evt));
 		this.node.addEventListener("mousedown", evt => this.clicked(evt));
+	}
 
+	setAsStart() {
+		this.node.style.backgroundImage = "url('img/startFlag.PNG')";
+	}
+
+	setAsEnd() {
+		this.node.style.backgroundImage = "url('img/endFlag.PNG')";
 	}
 }

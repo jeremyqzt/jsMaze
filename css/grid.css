@@ -29,5 +29,6 @@ html, body, container, fullScreen{
 	margin: 0px;
 	outline:none;
 	vertical-align: top;
-	font-size: 0;
+	font-size: 5px;
+	background-size: contain;
 }
