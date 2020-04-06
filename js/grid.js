@@ -100,10 +100,27 @@ class mazeMaker{
 
 			toProcess.splice(idx, 1);
 
-			await new Promise(r => setTimeout(r, 10));
+			await new Promise(r => setTimeout(r, 1));
 			//this.count++;
 			//if (this.count > 3)
 			//	break;
+		}
+		if (this.grid.heightIsEven()){
+			console.log("Handling Vertical Even");
+			for (var i = 0; i< individualHorizontalCount; i++){
+				if (!this.grid.isObs(individualVerticalCount - 2, i)) {
+					this.grid.setPass(individualVerticalCount -1 , i);
+				}
+			}
+		}
+		if (this.grid.widthIsEven()){
+			console.log("Handling Horizontal Even");
+			for (var i = 0; i< individualVerticalCount; i++){
+				if (!this.grid.isObs(i, individualHorizontalCount - 2)) {
+					this.grid.setPass(i, individualHorizontalCount-1);
+				}
+			}
+
 		}
 	}
 }
@@ -263,6 +280,10 @@ class Grid{
 		this.grid[vert][hor].setAsObs();
 	}
 
+	isObs(vert, hor) {
+		return this.grid[vert][hor].isObs;
+	}
+
 	setPass(vert, hor) {
 		this.grid[vert][hor].setAsPassage();
 	}
@@ -288,8 +309,15 @@ class Grid{
 		}
 	}
 
+	heightIsEven(){
+		return (this.individualVerticalCount % 2) == 0
+	}
+	widthIsEven(){
+		return (this.individualHorizontalCount % 2) == 0
+	}
+
 	renderGrid(xCount, yCount, individualWidth, individualHeight) {
-		//console.log("Creating " + xCount + " By " + yCount + " Size: " + individualWidth);
+		console.log("Creating " + xCount + " By " + yCount + " Size: " + individualWidth + " Total Render: " + yCount*xCount);
 		for (var i = 0; i < yCount; i++) {
 			for (var j = 0; j < xCount; j++) {
 				this.grid[i][j] = new GridNode(this.locat, this, individualWidth, individualHeight, i, j);
@@ -298,7 +326,6 @@ class Grid{
 			}
 		}
 
-		console.log("Total Render: " + yCount*xCount)
 		/*this.grid[1][1].setAsStart();
 		this.startNode = this.grid[1][1];
 		this.startCord = [1, 1];;
