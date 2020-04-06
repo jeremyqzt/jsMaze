@@ -9,7 +9,11 @@ class subDivider{
 	constructor(gridToDivide) {
 		this.grid = gridToDivide;
 		var prevEntryPoints = [0, 0, 0, 0];
-		this.recursiveDivide(0, 0 ,this.grid.individualHorizontalCount, this.grid.individualVerticalCount, prevEntryPoints, false);
+		this.count = 0;
+		//this.recursiveDivide(0, 0 ,this.grid.individualHorizontalCount, this.grid.individualVerticalCount, prevEntryPoints, false);
+		//this.setAllAsObs();
+		this.primRandomAlgo(this.grid.individualHorizontalCount, this.grid.individualVerticalCount);
+
 	}
 
 	randInt(start,end){
@@ -38,11 +42,85 @@ class subDivider{
 	floorWithExclusion(start, end, exclude) {
 		var ret = Math.floor(((end-start) / 2) + start);
 
-		while (this.isEntry(ret, exclude)) {
-			ret += 1;
-		}
+		//while (this.isEntry(ret, exclude)) {
+		//	ret += 1;
+		//}
 
 		return ret;
+	}
+
+	async setAllAsObs(individualHorizontalCount, individualVerticalCount) {
+		for (var i = 0; i < individualVerticalCount ; i++){
+			for (var j = 0; j < individualHorizontalCount; j++){
+				this.grid.setObs(i, j);
+			}
+			await new Promise(r => setTimeout(r, 15));
+		}
+
+	}
+
+	logArr(arr){
+		for (var i = 0; i< arr.length; i++) {
+			console.log(arr[i]);
+		}
+	}
+
+	async primRandomAlgo(individualHorizontalCount, individualVerticalCount) {
+
+		await this.setAllAsObs(individualHorizontalCount, individualVerticalCount);
+
+		var directions =["left", "right", "up", "down"];
+		var start = this.grid.getStart();
+		var adj = this.grid.getAdjacentObs(start[0], start[1]);
+		var toProcess = [adj];
+		var toLookAtNext = null;
+		var direction = null;
+		var currentDirectionNode = null;
+		var nextNode = null;
+		var valid = false;
+		while (toProcess.length != 0){
+			var idx = Math.floor(Math.random() * toProcess.length);
+			var node = toProcess[idx].me;
+			console.log(node);
+			valid = false;
+			//for (var dir = 0; dir < directions.length; dir++) {
+			for (;;){
+				direction = directions[this.randInt(0,3)];
+				//console.log(node[direction]);
+				await new Promise(r => setTimeout(r, 1));
+				currentDirectionNode = toProcess[idx][direction];
+				if (currentDirectionNode != null) {
+					toLookAtNext = this.grid.getAdjacentObs(currentDirectionNode.vert, currentDirectionNode.hor)[direction];
+					//console.log(toLookAtNext);
+					if (toLookAtNext != null) {
+						this.grid.setPass(currentDirectionNode.vert, currentDirectionNode.hor);
+						//console.log(this.grid.getAdjacentObs(toLookAtNext.vert, toLookAtNext.hor));
+						toProcess.push(this.grid.getAdjacentObs(toLookAtNext.vert, toLookAtNext.hor));
+						valid = true;
+						break;
+					}
+
+					//console.log(toProcess);
+				}
+			}
+			if (valid) {
+				this.grid.setPass(node.vert, node.hor);
+			}
+			toProcess.splice(idx, 1);
+			//console.log(toProcess);
+
+			//if (node["avail"] == 0){
+			//	toProcess.splice(idx, 1);
+			//	console.log("Splicing");
+			//}
+			//console.log(toProcess);
+
+			await new Promise(r => setTimeout(r, 5));
+
+			//this.logArr(toProcess);
+			//console.log("EEEEEEEEEEEEEEE");
+
+		}
 	}
 
 	async recursiveDivide(firstHorizontal, firstVertical, horizontalCount, verticalCount, prevEntries, breakNow) {
@@ -60,8 +138,6 @@ class subDivider{
 		var verticalHalfCount = Math.ceil(verticalCount/2);
 
 
-		//console.log("Horizontally From: " + firstHorizontal + " TO : " + (firstHorizontal + horizontalCount) + " Half @:" + horizontalHalf);
-		//console.log("Vertically From: " + firstVertical + " TO : " + (firstVertical + verticalCount) + " Half @:" + verticalHalf);
 		var horizontalDiv0 = this.randInt(firstHorizontal + 1, firstHorizontal + (horizontalCount/2) - 1);
 		var horizontalDiv1 = this.randInt(firstHorizontal + (horizontalCount/2) + 1, (firstHorizontal + horizontalCount) - 1);
 		var verticalDiv0 = this.randInt(firstVertical + 1, firstVertical + (verticalCount/2) - 1);
@@ -78,7 +154,7 @@ class subDivider{
 			}
 			//console.log("First " + verticalHalf + "," + i);
 			this.grid.setObs(verticalHalfPoint, i);
-			await new Promise(r => setTimeout(r, 15));
+			await new Promise(r => setTimeout(r, 5));
 		}
 
 		//Draw Vertical Line
@@ -88,7 +164,7 @@ class subDivider{
 			}
 			//console.log("Second " + i + "," + horizontalHalf);
 			this.grid.setObs(i, horizontalHalfPoint);
-			await new Promise(r => setTimeout(r, 15));
+			await new Promise(r => setTimeout(r, 5));
 		}
 
 		if (!breakNow) {
@@ -123,8 +199,63 @@ class Grid{
 		this.clicked = false;
 	}
 
+	getAdjacentObs(vert, hor) {
+		var left = null;
+		var right = null;
+		var up = null;
+		var down = null;;
+		var avail = 0;
+	
+		if (hor - 1 >= 0) {
+			if (this.grid[vert][hor - 1].isObs){
+				left = this.grid[vert][hor - 1];
+				avail++;
+			}
+		}
+		if (hor + 1 < this.individualHorizontalCount) {
+			if (this.grid[vert][hor + 1].isObs){
+				right = this.grid[vert][hor + 1];
+				avail++;
+			}
+		}
+		
+		if (vert - 1 >= 0) {
+			if (this.grid[vert - 1][hor].isObs){
+				up = this.grid[vert - 1][hor];
+				avail++;
+			}
+		}
+		if (vert + 1 < this.individualVerticalCount) {
+			if (this.grid[vert + 1][hor].isObs){
+				down = this.grid[vert + 1][hor];
+				avail++;
+			}
+		}
+
+		return {
+			left: left,
+			right: right,
+			up: up,
+			down: down,
+			avail: avail,
+			me: this.grid[vert][hor],
+		};
+
+	}
+
+	getStart(){
+		return this.startCord;
+	}
+	getEnd(){
+		return this.endCord;
+	}
+
 	setObs(vert, hor) {
 		this.grid[vert][hor].setAsObs();
+	}
+
+	setPass(vert, hor) {
+		this.grid[vert][hor].setAsPassage();
 	}
 
 	mouseClickedUp(evt) {
@@ -152,18 +283,27 @@ class Grid{
 		//console.log("Creating " + xCount + " By " + yCount + " Size: " + individualWidth);
 		for (var i = 0; i < yCount; i++) {
 			for (var j = 0; j < xCount; j++) {
-				this.grid[i][j] = new GridNode(this.locat, this, individualWidth, individualHeight);
+				this.grid[i][j] = new GridNode(this.locat, this, individualWidth, individualHeight, i, j);
 				this.grid[i][j].setAttrib("Cord", [i,j]);
-				if (i ==0 && j == 0) {
-					this.grid[i][j].setAsEnd();
-				}
+
 			}
 		}
+
+		console.log("Total Render: " + yCount*xCount)
+		this.grid[0][0].setAsStart();
+		this.startNode = this.grid[0][0];
+		this.startCord = [0, 0];;
+
+		this.grid[yCount - 1][xCount - 1].setAsEnd();
+		this.endNode = this.grid[yCount - 1][xCount - 1];
+		this.endCord = [yCount-1, xCount-1];;
 	}
 }
 
 class GridNode{
-	constructor(parentLocation, parentEl, width, height) {
+	constructor(parentLocation, parentEl, width, height, vert, hor) {
+		this.vert = vert;
+		this.hor = hor;
 		this.parentEl = parentEl;
 		this.parentLocation = parentLocation;
 		this.width = width;
@@ -171,6 +311,10 @@ class GridNode{
 		this.myAttribs = {};
 		this.renderSelf();
 		this.color = "white"
+		this.isStart= false;
+		this.isEnd= false;
+		this.isObs = false;
+
 	}
 
 	setAttrib(key, val) {
@@ -178,7 +322,11 @@ class GridNode{
 	}
 
 	getAttrib(key) {
-		return this.myAttribs[key];
+		if (key in this.myAttribs) {
+			return this.myAttribs[key];
+		}
+
+		return null;
 	}
 
 	dragged(evt) {
@@ -193,7 +341,17 @@ class GridNode{
 	}
 
 	setAsObs() {
-		this.color = "black";
+		if (!(this.isStart || this.isEnd)) {
+			this.color = "black";
+			this.isObs = true;
+			this.setAttrib("weight", Infinity);
+			this.node.style.backgroundColor = this.color;
+		}
+	}
+
+	setAsPassage() {		
+		this.color = "white";
+		this.setAttrib("weight", 1);
 		this.node.style.backgroundColor = this.color;
 	}
 
@@ -215,9 +373,11 @@ class GridNode{
 
 	setAsStart() {
 		this.node.style.backgroundImage = "url('img/startFlag.PNG')";
+		this.isStart= true;
 	}
 
 	setAsEnd() {
 		this.node.style.backgroundImage = "url('img/endFlag.PNG')";
+		this.isEnd = true;
 	}
 }
