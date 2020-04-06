@@ -1,11 +1,11 @@
 class Maze {
 	constructor() {
 		this.grid = new Grid("grid", 20);
-		this.generationAlgo = new subDivider(this.grid);
+		this.generationAlgo = new mazeMaker(this.grid);
 	}
 }
 
-class subDivider{
+class mazeMaker{
 	constructor(gridToDivide) {
 		this.grid = gridToDivide;
 		var prevEntryPoints = [0, 0, 0, 0];
@@ -66,115 +66,45 @@ class subDivider{
 	}
 
 	async primRandomAlgo(individualHorizontalCount, individualVerticalCount) {
-
 		await this.setAllAsObs(individualHorizontalCount, individualVerticalCount);
-
 		var directions =["left", "right", "up", "down"];
-		var start = this.grid.getStart();
-		var adj = this.grid.getAdjacentObs(start[0], start[1]);
-		var toProcess = [adj];
+
+		var start = [0, 0]; //this.grid.getStart();
+		this.grid.setPass(start[0], start[1]);
+		var adj = this.grid.getFrontierCells(start[0], start[1]);
+		var toProcess = [];
+		toProcess = toProcess.concat(adj);
+
 		var toLookAtNext = null;
 		var direction = null;
 		var currentDirectionNode = null;
 		var nextNode = null;
 		var valid = false;
-		while (toProcess.length != 0){
+
+		while (toProcess.length > 0){
 			var idx = Math.floor(Math.random() * toProcess.length);
-			var node = toProcess[idx].me;
-			console.log(node);
+			var node = toProcess[idx]; //Random frontier cell
+
 			valid = false;
-			//for (var dir = 0; dir < directions.length; dir++) {
-			for (;;){
-				direction = directions[this.randInt(0,3)];
-				//console.log(node[direction]);
-				await new Promise(r => setTimeout(r, 1));
-				currentDirectionNode = toProcess[idx][direction];
-				if (currentDirectionNode != null) {
-					toLookAtNext = this.grid.getAdjacentObs(currentDirectionNode.vert, currentDirectionNode.hor)[direction];
-					//console.log(toLookAtNext);
-					if (toLookAtNext != null) {
-						this.grid.setPass(currentDirectionNode.vert, currentDirectionNode.hor);
-						//console.log(this.grid.getAdjacentObs(toLookAtNext.vert, toLookAtNext.hor));
-						toProcess.push(this.grid.getAdjacentObs(toLookAtNext.vert, toLookAtNext.hor));
-						valid = true;
-						break;
-					}
-
-					//console.log(toProcess);
-				}
-			}
-			if (valid) {
+			var neighbours = this.grid.getNeighbourCells(node.vert, node.hor);
+			//this.logArr(neighbours);
+			var neighbourNode = null;
+			if (neighbours.length != 0 && node.isObs){
 				this.grid.setPass(node.vert, node.hor);
+				var neighbourIdx = Math.floor(Math.random() * neighbours.length);
+				neighbourNode = neighbours[neighbourIdx];
+				this.grid.setPass(neighbourNode.newPassage.vert, neighbourNode.newPassage.hor);
+				adj = this.grid.getFrontierCells(node.vert, node.hor);
+				toProcess = toProcess.concat(adj);
 			}
+
 			toProcess.splice(idx, 1);
-			//console.log(toProcess);
 
-			//if (node["avail"] == 0){
-			//	toProcess.splice(idx, 1);
-			//	console.log("Splicing");
-			//}
-			//console.log(toProcess);
-
-			await new Promise(r => setTimeout(r, 5));
-
-			//this.logArr(toProcess);
-			//console.log("EEEEEEEEEEEEEEE");
-
+			await new Promise(r => setTimeout(r, 10));
+			//this.count++;
+			//if (this.count > 3)
+			//	break;
 		}
-	}
-
-	async recursiveDivide(firstHorizontal, firstVertical, horizontalCount, verticalCount, prevEntries, breakNow) {
-
-		if (horizontalCount < 5 || verticalCount < 5) {
-			return;
-		}
-
-		//Do not place a divider on a entry point from previous round
-		var horizontalHalfPoint = this.floorWithExclusion(firstHorizontal, (firstHorizontal + horizontalCount), prevEntries);
-		var verticalHalfPoint = this.floorWithExclusion(firstVertical, (firstVertical + verticalCount), prevEntries);
-
-		//Quadrasect the grid
-		var horizontalHalfCount = Math.ceil(horizontalCount/2);
-		var verticalHalfCount = Math.ceil(verticalCount/2);
-
-
-		var horizontalDiv0 = this.randInt(firstHorizontal + 1, firstHorizontal + (horizontalCount/2) - 1);
-		var horizontalDiv1 = this.randInt(firstHorizontal + (horizontalCount/2) + 1, (firstHorizontal + horizontalCount) - 1);
-		var verticalDiv0 = this.randInt(firstVertical + 1, firstVertical + (verticalCount/2) - 1);
-		var verticalDiv1 = this.randInt(firstVertical + (verticalCount/2) + 1, (firstVertical + verticalCount) - 1);
-
-		var prevEntriesForNextRound = [horizontalDiv0, horizontalDiv1, verticalDiv0, verticalDiv1];
-		//var prevEntriesForNextRound = [0, 0, 0, 0];
-
-		//console.log(prevEntriesForNextRound);
-		//Draw Horizontal Line
-		for (var i = firstHorizontal; i < (firstHorizontal + horizontalCount) && i < this.grid.individualHorizontalCount; i++) {
-			if (horizontalDiv0 === i || horizontalDiv1 === i) {
-				continue;
-			}
-			//console.log("First " + verticalHalf + "," + i);
-			this.grid.setObs(verticalHalfPoint, i);
-			await new Promise(r => setTimeout(r, 5));
-		}
-
-		//Draw Vertical Line
-		for (var i = firstVertical; i < (firstVertical + verticalCount) && i < this.grid.individualVerticalCount; i++) {
-			if (verticalDiv0 === i || verticalDiv1 === i) {
-				continue;
-			}
-			//console.log("Second " + i + "," + horizontalHalf);
-			this.grid.setObs(i, horizontalHalfPoint);
-			await new Promise(r => setTimeout(r, 5));
-		}
-
-		if (!breakNow) {
-			this.recursiveDivide(firstHorizontal, firstVertical, horizontalHalfCount , verticalHalfCount, prevEntriesForNextRound, false);
-			this.recursiveDivide(horizontalHalfPoint, firstVertical, horizontalHalfCount , verticalHalfCount, prevEntriesForNextRound, false);
-			this.recursiveDivide(firstHorizontal, verticalHalfPoint, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
-			this.recursiveDivide(horizontalHalfPoint, verticalHalfPoint, horizontalHalfCount, verticalHalfCount, prevEntriesForNextRound, false);
-		}
-
-
 	}
 }
 
@@ -205,7 +135,6 @@ class Grid{
 		var up = null;
 		var down = null;;
 		var avail = 0;
-	
 		if (hor - 1 >= 0) {
 			if (this.grid[vert][hor - 1].isObs){
 				left = this.grid[vert][hor - 1];
@@ -218,7 +147,7 @@ class Grid{
 				avail++;
 			}
 		}
-		
+
 		if (vert - 1 >= 0) {
 			if (this.grid[vert - 1][hor].isObs){
 				up = this.grid[vert - 1][hor];
@@ -231,7 +160,6 @@ class Grid{
 				avail++;
 			}
 		}
-
 		return {
 			left: left,
 			right: right,
@@ -240,7 +168,88 @@ class Grid{
 			avail: avail,
 			me: this.grid[vert][hor],
 		};
+	}
 
+	//Frontier cells, from POV of passage is len 2 obstacle
+	getFrontierCells(vert, hor) {
+		var left = null;
+		var right = null;
+		var up = null;
+		var down = null;
+		var avail = [];
+
+		if (hor - 2 >= 0) {
+			if (this.grid[vert][hor - 2].isObs){
+				avail.push(this.grid[vert][hor - 2]);
+			}
+		}
+		if (hor + 2 < this.individualHorizontalCount) {
+			if (this.grid[vert][hor + 2].isObs){
+				avail.push(this.grid[vert][hor + 2]);
+			}
+		}
+
+		if (vert - 2 >= 0) {
+			if (this.grid[vert - 2][hor].isObs){
+				avail.push(this.grid[vert - 2][hor]);
+			}
+		}
+
+		if (vert + 2 < this.individualVerticalCount) {
+			if (this.grid[vert + 2][hor].isObs){
+				avail.push(this.grid[vert + 2][hor]);
+			}
+		}
+		return avail;
+	}
+
+	//Neighbour cells, from POV of frontier is len 2 passage
+	getNeighbourCells(vert, hor) {
+		var left = null;
+		var right = null;
+		var up = null;
+		var down = null;
+		var toPush = null;
+		var avail = [];
+
+		if (hor - 2 >= 0) {
+			if (!this.grid[vert][hor - 2].isObs){
+				toPush = {
+					neighbour: this.grid[vert][hor - 2],
+					newPassage: this.grid[vert][hor - 1]
+				}
+				avail.push(toPush);
+			}
+		}
+		if (hor + 2 < this.individualHorizontalCount) {
+			if (!this.grid[vert][hor + 2].isObs){
+				toPush = {
+					neighbour: this.grid[vert][hor + 2],
+					newPassage: this.grid[vert][hor + 1]
+				}
+				avail.push(toPush);
+			}
+		}
+
+		if (vert - 2 >= 0) {
+			if (!this.grid[vert - 2][hor].isObs){
+				toPush = {
+					neighbour: this.grid[vert - 2][hor],
+					newPassage: this.grid[vert - 1][hor]
+				}
+				avail.push(toPush);
+			}
+		}
+		if (vert + 2 < this.individualVerticalCount) {
+			if (!this.grid[vert + 2][hor].isObs){
+				toPush = {
+					neighbour: this.grid[vert + 2][hor],
+					newPassage: this.grid[vert + 1][hor]
+				}
+				avail.push(toPush);
+			}
+		}
+		return avail;
 	}
 
 	getStart(){
@@ -290,13 +299,13 @@ class Grid{
 		}
 
 		console.log("Total Render: " + yCount*xCount)
-		this.grid[0][0].setAsStart();
-		this.startNode = this.grid[0][0];
-		this.startCord = [0, 0];;
+		/*this.grid[1][1].setAsStart();
+		this.startNode = this.grid[1][1];
+		this.startCord = [1, 1];;
 
 		this.grid[yCount - 1][xCount - 1].setAsEnd();
 		this.endNode = this.grid[yCount - 1][xCount - 1];
-		this.endCord = [yCount-1, xCount-1];;
+		this.endCord = [yCount-1, xCount-1];*/
 	}
 }
 
@@ -349,9 +358,10 @@ class GridNode{
 		}
 	}
 
-	setAsPassage() {		
+	setAsPassage() {
 		this.color = "white";
 		this.setAttrib("weight", 1);
+		this.isObs = false;
 		this.node.style.backgroundColor = this.color;
 	}
 
