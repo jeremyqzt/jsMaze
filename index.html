@@ -17,10 +17,30 @@
 	<div class="container">
 	<div id="grid"> </div>
 	</div>
+	<button id="maze" onClick = "makeMaze()">Generate Maze</button>
+	<button id="DFS" onClick = "solveMazeDfs()">Solve DFS</button>
+	<button id="DFS" onClick = "solveMazeBfs()">Solve BFS</button>
+
 	<script src="js/grid.js"></script>
 	<script src="js/gridNode.js"></script>
+	<script src="js/algos.js"></script>
 	<script>
-		let grid = new Maze();
+		var grid = new Grid("grid", 20);
+		var generationAlgo = new mazeMaker(this.grid);
+
+		makeMaze = () => {
+			generationAlgo.makeMaze();
+		}
+
+		solveMazeDfs = () => {
+			//console.log(maze.grid);
+			DFSearch(grid, grid.getStart(), grid.getEnd(), true);
+		}
+
+		solveMazeBfs = () => {
+			//console.log(maze.grid);
+			BFSearch(grid, grid.getStart(), grid.getEnd(), true);
+		}
 	</script>
 </body>
 </html>

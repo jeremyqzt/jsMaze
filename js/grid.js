@@ -1,10 +1,3 @@
-class Maze {
-	constructor() {
-		this.grid = new Grid("grid", 20);
-		this.generationAlgo = new mazeMaker(this.grid);
-	}
-}
-
 class mazeMaker{
 	constructor(gridToDivide) {
 		this.grid = gridToDivide;
@@ -12,8 +5,10 @@ class mazeMaker{
 		this.count = 0;
 		//this.recursiveDivide(0, 0 ,this.grid.individualHorizontalCount, this.grid.individualVerticalCount, prevEntryPoints, false);
 		//this.setAllAsObs();
-		this.primRandomAlgo(this.grid.individualHorizontalCount, this.grid.individualVerticalCount);
+	}
 
+	makeMaze() {
+		this.primRandomAlgo(this.grid.individualHorizontalCount, this.grid.individualVerticalCount);
 	}
 
 	randInt(start,end){
@@ -146,6 +141,14 @@ class Grid{
 		this.clicked = false;
 	}
 
+	setAllNodeAttrib(attrib, val){
+		for (var i = 0; i < this.individualVerticalCount; i++) {
+			for (var j = 0; j < this.individualHorizontalCount; j++) {
+				this.grid[i][j].setAttrib(attrib, val);
+			}
+		}
+	}
+
 	getAdjacentObs(vert, hor) {
 		var left = null;
 		var right = null;
@@ -189,10 +192,6 @@ class Grid{
 
 	//Frontier cells, from POV of passage is len 2 obstacle
 	getFrontierCells(vert, hor) {
-		var left = null;
-		var right = null;
-		var up = null;
-		var down = null;
 		var avail = [];
 
 		if (hor - 2 >= 0) {
@@ -269,11 +268,40 @@ class Grid{
 		return avail;
 	}
 
-	getStart(){
-		return this.startCord;
+	getAdjacentPassages(vert, hor){
+		var avail = [];
+
+		if (hor - 1 >= 0) {
+			if (!this.grid[vert][hor - 1].isObs){
+				avail.push(this.grid[vert][hor - 1]);
+			}
+		}
+		if (hor + 1 < this.individualHorizontalCount) {
+			if (!this.grid[vert][hor + 1].isObs){
+				avail.push(this.grid[vert][hor + 1]);
+			}
+		}
+
+		if (vert - 1 >= 0) {
+			if (!this.grid[vert - 1][hor].isObs){
+				avail.push(this.grid[vert - 1][hor]);
+			}
+		}
+
+		if (vert + 1 < this.individualVerticalCount) {
+			if (!this.grid[vert + 1][hor].isObs){
+				avail.push(this.grid[vert + 1][hor]);
+			}
+		}
+		return avail;
 	}
+
+	getStart(){
+		return this.startNode;
+	}
+
 	getEnd(){
-		return this.endCord;
+		return this.endNode;
 	}
 
 	setObs(vert, hor) {
@@ -326,13 +354,11 @@ class Grid{
 			}
 		}
 
-		/*this.grid[1][1].setAsStart();
-		this.startNode = this.grid[1][1];
-		this.startCord = [1, 1];;
+		this.grid[0][0].setAsStart();
+		this.startNode = this.grid[0][0];
 
 		this.grid[yCount - 1][xCount - 1].setAsEnd();
 		this.endNode = this.grid[yCount - 1][xCount - 1];
-		this.endCord = [yCount-1, xCount-1];*/
 	}
 }
 
@@ -350,7 +376,6 @@ class GridNode{
 		this.isStart= false;
 		this.isEnd= false;
 		this.isObs = false;
-
 	}
 
 	setAttrib(key, val) {
@@ -394,6 +419,11 @@ class GridNode{
 
 	flipColor() {
 		this.color = (this.color == "black") ? "white": "black";
+		this.node.style.backgroundColor = this.color;
+	}
+
+	setColor(color) {
+		this.color = color;
 		this.node.style.backgroundColor = this.color;
 	}
 
