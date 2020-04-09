@@ -149,6 +149,36 @@ class Grid{
 		}
 	}
 
+	cleanAll(){
+		for (var i = 0; i < this.individualVerticalCount; i++) {
+			for (var j = 0; j < this.individualHorizontalCount; j++) {
+				this.grid[i][j].setAsPassage();
+			}
+		}
+	}
+
+	countVerticies(){
+		var ret = 0;
+		for (var i = 0; i < this.individualVerticalCount; i++) {
+			for (var j = 0; j < this.individualHorizontalCount; j++) {
+				if (!this.grid[i][j].isObs) {
+					ret++;
+				}
+			}
+		}
+		return ret;
+	}
+
+	cleanAllPass(){
+		for (var i = 0; i < this.individualVerticalCount; i++) {
+			for (var j = 0; j < this.individualHorizontalCount; j++) {
+				if (!this.grid[i][j].isObs) {
+					this.grid[i][j].setColor("White");
+				}
+			}
+		}
+	}
+
 	getAdjacentObs(vert, hor) {
 		var left = null;
 		var right = null;
@@ -392,13 +422,21 @@ class GridNode{
 
 	dragged(evt) {
 		if (this.parentEl.getClicked()) {
-			this.flipColor();
+			this.evalPassObs();
+		}
+	}
+	
+	evalPassObs(){
+		if (this.isObs) {
+			this.setAsPassage();
+		} else {
+			this.setAsObs();
 		}
 	}
 
 	clicked(evt) {
 		console.log("Clicked on " + this.myAttribs["Cord"]);
-		this.flipColor();
+		this.evalPassObs();
 	}
 
 	setAsObs() {

@@ -17,9 +17,12 @@
 	<div class="container">
 	<div id="grid"> </div>
 	</div>
-	<button id="maze" onClick = "makeMaze()">Generate Maze</button>
-	<button id="DFS" onClick = "solveMazeDfs()">Solve DFS</button>
-	<button id="DFS" onClick = "solveMazeBfs()">Solve BFS</button>
+	<button onClick = "makeMaze()">Generate Maze</button>
+	<button onClick = "cleanAll()">Clean All</button>
+	<button onClick = "solveMazeDfs()">Solve DFS</button>
+	<button onClick = "solveMazeBfs()">Solve BFS</button>
+	<button onClick = "SPFDijkstra()">Solve Dijkstra</button>
+	<button onClick = "SPFBF()">Solve BellmanFord</button>
 
 	<script src="js/grid.js"></script>
 	<script src="js/gridNode.js"></script>
@@ -33,13 +36,24 @@
 		}
 
 		solveMazeDfs = () => {
-			//console.log(maze.grid);
 			DFSearch(grid, grid.getStart(), grid.getEnd(), true);
 		}
 
 		solveMazeBfs = () => {
-			//console.log(maze.grid);
-			BFSearch(grid, grid.getStart(), grid.getEnd(), true);
+			BFSearch(grid, grid.getStart(), grid.getEnd());
+		}
+
+		SPFDijkstra = () => {
+			Dijkstra(grid, grid.getStart(), grid.getEnd());
+		}
+
+		SPFBF = () => {
+			BellmanFord(grid, grid.getStart(), grid.getEnd());
+		}
+
+
+		cleanAll = () => {
+			grid.cleanAll();
 		}
 	</script>
 </body>
