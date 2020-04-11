@@ -2,9 +2,30 @@ var discoveredKey = "discovered";
 var previousKey = "previousKey";
 var weightKey = "w";
 
+function okayToRun(arr) {
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i] == null) {
+			alert("Start or Stop Flags Missing");
+			return false;
+		}
+	}
+	return true;
+}
+
 async function DFSearch(grid, cur, end, first){
 	if (first){
+		if (this.grid.actionInProgress()) {
+			alert("DFS Cannot Run, the Grid is currently occupied");
+			return;
+		}
+
+		if (!okayToRun([grid, cur, end])) {
+			return;
+		}
+
+		this.grid.setAction(true);
 		grid.cleanAllPass();
+		grid.clearAllAttrib();
 		grid.setAllNodeAttrib(discoveredKey, false);
 	}
 	//console.log(end);
@@ -29,12 +50,25 @@ async function DFSearch(grid, cur, end, first){
 	if (first) {
 		await drawPath(end, cur);
 	}
+	if (first){
+		this.grid.setAction(false);
+	}
 
 }
 
 
 async function BFSearch(grid, start, end){
+	if (this.grid.actionInProgress()) {
+		alert("BFS Cannot Run, the Grid is currently occupied");
+		return;
+	}
+	if (!okayToRun([grid, start, end])) {
+		return;
+	}
+	this.grid.setAction(true);
+
 	grid.cleanAllPass();
+	grid.clearAllAttrib();
 
 	grid.setAllNodeAttrib(discoveredKey, false);
 	var cur = start;
@@ -67,10 +101,22 @@ async function BFSearch(grid, start, end){
 		}
 	}
 	await drawPath(end, start);
+
+	this.grid.setAction(false);
 }
 
 async function BellmanFord(grid, start, end) {
+	if (this.grid.actionInProgress()) {
+		alert("Bellman-Ford Cannot Run, the Grid is currently occupied");
+		return;
+	}
+	if (!okayToRun([grid, start, end])) {
+		return;
+	}
+	this.grid.setAction(true);
 	grid.cleanAllPass();
+	grid.clearAllAttrib();
+
 	grid.setAllNodeAttrib(discoveredKey, false);
 	grid.setAllNodeAttrib(weightKey, Infinity);
 	grid.setAllNodeAttrib(previousKey, null);
@@ -113,11 +159,23 @@ async function BellmanFord(grid, start, end) {
 
 	console.log(grid.grid[0][1]);
 	await drawPath(end, start);
+
+	this.grid.setAction(false);
 }
 
 
 async function Dijkstra(grid, start, end){
+	if (this.grid.actionInProgress()) {
+		alert("Dijkstra Cannot Run, the Grid is currently occupied");
+		return;
+	}
+	if (!okayToRun([grid, start, end])) {
+		return;
+	}
+	this.grid.setAction(true);
 	grid.cleanAllPass();
+	grid.clearAllAttrib();
+
 	grid.setAllNodeAttrib(discoveredKey, false);
 	grid.setAllNodeAttrib(weightKey, Infinity);
 
@@ -158,10 +216,16 @@ async function Dijkstra(grid, start, end){
 
 	}
 	await drawPath(end, start);
+
+	this.grid.setAction(false);
 }
 
 async function drawPath(end, first){
 	var cur = end;
+	if (cur.getAttrib(previousKey) == null) {
+		alert("No Path Found");
+		return
+	}
 	while (!cur.isStart) {
 		cur.setColor("YellowGreen");
 		cur = cur.getAttrib(previousKey);

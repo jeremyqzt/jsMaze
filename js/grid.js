@@ -61,6 +61,13 @@ class mazeMaker{
 	}
 
 	async primRandomAlgo(individualHorizontalCount, individualVerticalCount) {
+		if (this.grid.actionInProgress()) {
+			alert("Something is occupying the grid right now");
+			return;
+		}
+
+		this.grid.setAction(true);
+
 		await this.setAllAsObs(individualHorizontalCount, individualVerticalCount);
 		var directions =["left", "right", "up", "down"];
 
@@ -117,6 +124,8 @@ class mazeMaker{
 			}
 
 		}
+		this.grid.setAction(false);
+
 	}
 }
 
@@ -139,6 +148,18 @@ class Grid{
 		this.initializeArrs(this.individualHorizontalCount, this.individualVerticalCount);
 		this.renderGrid(this.individualHorizontalCount, this.individualVerticalCount, this.width, this.height);
 		this.clicked = false;
+
+		this.endNode = null;
+		this.startNode = null;
+		this.action = false;
+	}
+
+	setAction(val) {
+		this.action = val;
+	}
+
+	actionInProgress() {
+		return this.action;
 	}
 
 	setAllNodeAttrib(attrib, val){
@@ -149,10 +170,22 @@ class Grid{
 		}
 	}
 
+	clearAllAttrib() {
+		for (var i = 0; i < this.individualVerticalCount; i++) {
+			for (var j = 0; j < this.individualHorizontalCount; j++) {
+				this.grid[i][j].clearAttribs();
+			}
+		}	
+	}
+
 	cleanAll(){
 		for (var i = 0; i < this.individualVerticalCount; i++) {
 			for (var j = 0; j < this.individualHorizontalCount; j++) {
 				this.grid[i][j].setAsPassage();
+				this.grid[i][j].removeStartEnd();
+				this.grid[i][j].clearAttribs();
+				this.startNode = null;
+				this.endNode = null;
 			}
 		}
 	}
@@ -383,13 +416,24 @@ class Grid{
 
 			}
 		}
-
-		this.grid[0][0].setAsStart();
-		this.startNode = this.grid[0][0];
-
-		this.grid[yCount - 1][xCount - 1].setAsEnd();
-		this.endNode = this.grid[yCount - 1][xCount - 1];
 	}
+
+	informStart(vert, hor) {
+		if (this.startNode != null) {
+			this.startNode.removeStartEnd();
+		}
+		this.grid[vert][hor].setAsStart();
+		this.startNode = this.grid[vert][hor];
+	}
+
+	informEnd(vert, hor) {
+		if (this.endNode != null) {
+			this.endNode.removeStartEnd();
+		}
+		this.grid[vert][hor].setAsEnd();
+		this.endNode = this.grid[vert][hor];
+	}
+
 }
 
 class GridNode{
@@ -408,6 +452,10 @@ class GridNode{
 		this.isObs = false;
 	}
 
+	clearAttribs() {
+		this.myAttribs = {};
+	}
+
 	setAttrib(key, val) {
 		this.myAttribs[key] = val;
 	}
@@ -416,7 +464,6 @@ class GridNode{
 		if (key in this.myAttribs) {
 			return this.myAttribs[key];
 		}
-
 		return null;
 	}
 
@@ -435,7 +482,6 @@ class GridNode{
 	}
 
 	clicked(evt) {
-		console.log("Clicked on " + this.myAttribs["Cord"]);
 		this.evalPassObs();
 	}
 
@@ -474,6 +520,26 @@ class GridNode{
 		this.node.setAttribute("class","gridNode");
 		this.node.addEventListener("mouseenter", evt => this.dragged(evt));
 		this.node.addEventListener("mousedown", evt => this.clicked(evt));
+		this.node.addEventListener("dblclick", evt => this.setAsStartNode(evt));
+		this.node.addEventListener("mouseup", evt => this.setAsEndNode(evt));
+	}
+
+	setAsEndNode(evt) {
+		if (evt.detail === 2 && evt.which === 3) { 
+			this.setAsEnd();
+			this.parentEl.informEnd(this.vert, this.hor);
+		}
+	}
+
+	setAsStartNode(evt) {
+		this.setAsStart();
+		this.parentEl.informStart(this.vert, this.hor);
+	}
+
+	removeStartEnd(){
+		this.isStart = false;
+		this.isEnd = false;
+		this.node.style.backgroundImage = "";
 	}
 
 	setAsStart() {
@@ -483,6 +549,7 @@ class GridNode{
 
 	setAsEnd() {
 		this.node.style.backgroundImage = "url('img/endFlag.PNG')";
-		this.isEnd = true;
+		this.isEnd= true;
 	}
+
 }
