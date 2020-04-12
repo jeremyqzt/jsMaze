@@ -124,6 +124,9 @@ class mazeMaker{
 			}
 
 		}
+
+		this.grid.randomStartEnd();
+
 		this.grid.setAction(false);
 
 	}
@@ -152,6 +155,27 @@ class Grid{
 		this.endNode = null;
 		this.startNode = null;
 		this.action = false;
+	}
+
+	randomStartEnd() {
+		var v0 = Math.floor(Math.random() * this.individualVerticalCount);
+		var h0 = Math.floor(Math.random() * this.individualHorizontalCount);
+		var v1 = Math.floor(Math.random() * this.individualVerticalCount);
+		var h1 = Math.floor(Math.random() * this.individualHorizontalCount);
+
+		var debug = [v0, h0, v1, h1];
+		console.log(debug);
+
+		while (this.grid[v0][h0].isObs || this.grid[v1][h1].isObs) {
+			v0 = Math.floor(Math.random() * this.individualVerticalCount);
+			h0 = Math.floor(Math.random() * this.individualHorizontalCount);
+			v1 = Math.floor(Math.random() * this.individualVerticalCount);
+			h1 = Math.floor(Math.random() * this.individualHorizontalCount);
+		}
+
+
+		this.informStart(v0, h0);
+		this.informEnd(v1, h1);
 	}
 
 	setAction(val) {
